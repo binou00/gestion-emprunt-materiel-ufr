@@ -1,0 +1,58 @@
+[
+  {
+    "model": "materiel.categorie",
+    "pk": 1,
+    "fields": {
+      "libelle": "Stations totales",
+      "description": "Instruments de mesure d'angles et de distances pour la topographie."
+    }
+  },
+  {
+    "model": "materiel.categorie",
+    "pk": 2,
+    "fields": {
+      "libelle": "Récepteurs GNSS / GPS",
+      "description": "Récepteurs satellitaires de précision (différentiel) et GPS de poche."
+    }
+  },
+  {
+    "model": "materiel.categorie",
+    "pk": 3,
+    "fields": {
+      "libelle": "Niveaux et nivellement",
+      "description": "Niveaux optiques et électroniques avec mires pour la mesure d'altitude."
+    }
+  },
+  {
+    "model": "materiel.categorie",
+    "pk": 4,
+    "fields": {
+      "libelle": "Accessoires de terrain",
+      "description": "Trépieds, embases, prismes, supports, cannes, mires."
+    }
+  },
+  {
+    "model": "materiel.categorie",
+    "pk": 5,
+    "fields": {
+      "libelle": "Énergie",
+      "description": "Batteries, chargeurs et accessoires d'alimentation."
+    }
+  },
+  {
+    "model": "materiel.categorie",
+    "pk": 6,
+    "fields": {
+      "libelle": "Communication",
+      "description": "Talkie-walkies pour la coordination sur le terrain."
+    }
+  },
+  {
+    "model": "materiel.categorie",
+    "pk": 7,
+    "fields": {
+      "libelle": "Informatique mobile",
+      "description": "Ordinateurs portables et tablettes pour acquisition et traitement de données."
+    }
+  }
+]

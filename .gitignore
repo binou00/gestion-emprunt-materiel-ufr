@@ -1,0 +1,44 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# --- Django ---
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+.env
+
+# --- IA / modèles ---
+ia/checkpoints/
+ia/models/
+ia/.cache/
+*.bin
+*.safetensors
+*.pt
+*.ckpt
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- Node (si besoin pour le front) ---
+node_modules/
+package-lock.json
+
+# --- OS ---
+*.tmp
+*.bak
