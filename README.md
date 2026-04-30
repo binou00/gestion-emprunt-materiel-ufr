@@ -67,8 +67,8 @@ L'UFR met à disposition des étudiants un parc de matériel coûteux (stations 
 
 ```bash
 # Cloner le dépôt
-git clone <URL-du-depot>.git
-cd projet-poo-ufr-si
+git clone https://github.com/<ton-pseudo>/gestion-emprunt-materiel-ufr.git
+cd gestion-emprunt-materiel-ufr
 
 # Backend
 cd backend
