@@ -63,20 +63,48 @@ L'UFR met à disposition des étudiants un parc de matériel coûteux (stations 
 | 4 | Collecte corpus IA + dataset | 3 j |
 | 5 | Fine-tuning + évaluation + intégration chat | 6 j |
 
-## Démarrage rapide
+## Démarrage rapide (3 services)
+
+### Terminal 1 — Microservice IA (mode démo, sans GPU)
 
 ```bash
-# Cloner le dépôt
-git clone https://github.com/<ton-pseudo>/gestion-emprunt-materiel-ufr.git
-cd gestion-emprunt-materiel-ufr
+cd ia/service/
+pip install fastapi uvicorn[standard] pydantic
+USE_MOCK=1 uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+```
 
-# Backend
-cd backend
+### Terminal 2 — Backend Django
+
+```bash
+cd backend/
 python -m venv .venv
-source .venv/bin/activate    # Windows : .venv\Scripts\activate
+source .venv/bin/activate          # Windows : .venv\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
+python manage.py loaddata fixtures/01_categories.json fixtures/02_materiels.json
+python manage.py createsuperuser   # une seule fois
 python manage.py runserver
+```
+
+Ouvrir ensuite http://127.0.0.1:8000.
+
+### Pour passer le chatbot en mode réel (avec fine-tuning)
+
+```bash
+cd ia/training/
+pip install -r requirements.txt
+python train_lora.py --epochs 3    # ~30 min sur GPU 8 Go
+
+cd ../service/
+USE_MOCK=0 MODEL_PATH=../training/checkpoints/ufr-chatbot-lora uvicorn main:app --port 8001
+```
+
+## Tests
+
+```bash
+cd backend/
+python manage.py test               # tous les tests Django
+python manage.py test chatbot       # tests du ChatService uniquement
 ```
 
 ## Licence

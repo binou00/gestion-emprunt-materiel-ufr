@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard administrateur — UFR SI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="mb-0"><i class="bi bi-speedometer2 text-primary"></i> Tableau de bord administrateur</h1>
+    <p class="text-muted mb-0">Vue synthétique au {{ aujourdhui|date:"d F Y" }}</p>
+  </div>
+  <div class="btn-group">
+    <a href="{% url 'bonus:export_demandes_csv' %}" class="btn btn-outline-success">
+      <i class="bi bi-file-earmark-spreadsheet"></i> Export demandes CSV
+    </a>
+    <a href="{% url 'bonus:export_materiels_csv' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-file-earmark-text"></i> Export matériel CSV
+    </a>
+  </div>
+</div>
+
+{# ===================== KPIs principales ===================== #}
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase">Total demandes</div>
+            <div class="display-6 fw-bold text-primary">{{ total_demandes }}</div>
+          </div>
+          <i class="bi bi-clipboard-data text-primary" style="font-size:2rem;"></i>
+        </div>
+        <div class="text-muted small mt-2">{{ demandes_mois }} ce mois-ci</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase">En attente</div>
+            <div class="display-6 fw-bold text-warning">{{ en_attente }}</div>
+          </div>
+          <i class="bi bi-hourglass-split text-warning" style="font-size:2rem;"></i>
+        </div>
+        <div class="text-muted small mt-2">À valider rapidement</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase">Taux d'approbation</div>
+            <div class="display-6 fw-bold text-success">{{ taux_approbation }}%</div>
+          </div>
+          <i class="bi bi-check-circle text-success" style="font-size:2rem;"></i>
+        </div>
+        <div class="text-muted small mt-2">{{ approuvees }} acceptées / {{ refusees }} refusées</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase">Retards</div>
+            <div class="display-6 fw-bold text-danger">{{ retards|length }}</div>
+          </div>
+          <i class="bi bi-exclamation-triangle text-danger" style="font-size:2rem;"></i>
+        </div>
+        <div class="text-muted small mt-2">Restitutions en retard</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ===================== Répartition par statut ===================== #}
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Répartition des demandes par statut</h5>
+      </div>
+      <div class="card-body">
+        <table class="table table-sm align-middle">
+          <tbody>
+            <tr><td><span class="badge bg-warning">En attente</span></td><td class="text-end fw-bold">{{ en_attente }}</td></tr>
+            <tr><td><span class="badge bg-info">Approuvées</span></td><td class="text-end fw-bold">{{ approuvees }}</td></tr>
+            <tr><td><span class="badge bg-primary">En cours</span></td><td class="text-end fw-bold">{{ en_cours }}</td></tr>
+            <tr><td><span class="badge bg-success">Restituées</span></td><td class="text-end fw-bold">{{ restituees }}</td></tr>
+            <tr><td><span class="badge bg-danger">Refusées</span></td><td class="text-end fw-bold">{{ refusees }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0"><i class="bi bi-tools"></i> État du parc matériel</h5>
+      </div>
+      <div class="card-body">
+        <table class="table table-sm align-middle">
+          <tbody>
+            <tr><td>Total matériels</td><td class="text-end fw-bold">{{ nb_materiels }}</td></tr>
+            <tr><td><span class="badge bg-success">Disponibles</span></td><td class="text-end fw-bold">{{ nb_disponibles }}</td></tr>
+            <tr><td><span class="badge bg-info">Empruntés</span></td><td class="text-end fw-bold">{{ nb_empruntes }}</td></tr>
+            <tr><td><span class="badge bg-warning">En maintenance</span></td><td class="text-end fw-bold">{{ nb_maintenance }}</td></tr>
+            <tr><td>Étudiants actifs</td><td class="text-end fw-bold">{{ nb_etudiants }}</td></tr>
+            <tr><td>Techniciens</td><td class="text-end fw-bold">{{ nb_techniciens }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ===================== Top matériels ===================== #}
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0"><i class="bi bi-trophy"></i> Top 5 matériels les plus demandés</h5>
+      </div>
+      <div class="card-body p-0">
+        <table class="table mb-0 align-middle">
+          <thead class="table-light">
+            <tr><th>Matériel</th><th class="text-end">Demandes</th></tr>
+          </thead>
+          <tbody>
+            {% for m in top_materiels %}
+              <tr>
+                <td><span class="fw-semibold">{{ m.nom }}</span> <small class="text-muted">({{ m.code }})</small></td>
+                <td class="text-end"><span class="badge bg-primary">{{ m.nb_demandes }}</span></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="2" class="text-center text-muted">Aucune donnée pour le moment.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0 text-danger">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Restitutions en retard</h5>
+      </div>
+      <div class="card-body p-0">
+        <table class="table mb-0 align-middle">
+          <thead class="table-light">
+            <tr><th>#</th><th>Étudiant</th><th>Échéance</th></tr>
+          </thead>
+          <tbody>
+            {% for d in retards %}
+              <tr>
+                <td>#{{ d.pk }}</td>
+                <td>{{ d.utilisateur.get_full_name|default:d.utilisateur.username }}</td>
+                <td><span class="text-danger fw-semibold">{{ d.date_fin|date:"d/m/Y" }}</span></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-center text-success py-3"><i class="bi bi-check-circle"></i> Aucun retard !</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-info border-0 shadow-sm mb-0">
+  <i class="bi bi-info-circle"></i>
+  Pour gérer les demandes en détail, accédez à
+  <a href="{% url 'admin:index' %}" class="alert-link">l'interface d'administration Django</a>.
+</div>
+{% endblock %}

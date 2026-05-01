@@ -75,6 +75,8 @@ Puis ouvre dans le navigateur :
 | `emprunts` | `Demande`, `LigneDemande`, `Emplacement`, `Restitution` | Cycle d'emprunt complet |
 | `chatbot` | `ConversationChat` | Conversations avec l'assistant IA |
 | `api` | (router DRF) | Routage centralisé des endpoints REST |
+| `pages` | (vues HTML) | Pages utilisateur (catalogue, demandes, chat) |
+| `bonus` | (signals + vues) | Notifications e-mail, dashboard admin, exports CSV |
 
 ## Endpoints API principaux
 
@@ -89,6 +91,22 @@ Puis ouvre dans le navigateur :
 | POST | `/api/demandes/{id}/annuler/` | Annuler |
 | POST | `/api/chat/` | Créer une nouvelle conversation |
 | POST | `/api/chat/{id}/envoyer/` | Envoyer un message à l'IA |
+
+## Fonctionnalités bonus
+
+L'app `bonus/` ajoute trois fonctionnalités complémentaires :
+
+| URL | Description | Accès |
+|-----|-------------|-------|
+| `/bonus/dashboard/` | Tableau de bord administrateur (KPIs, retards, top matériel) | Staff uniquement |
+| `/bonus/export/demandes.csv` | Export CSV de toutes les demandes (filtres optionnels) | Staff uniquement |
+| `/bonus/export/materiels.csv` | Export CSV du catalogue matériel | Staff uniquement |
+
+**Notifications e-mail** : à chaque transition de statut d'une demande
+(création, approbation, refus, restitution), un e-mail est envoyé à l'étudiant
+concerné. En développement, l'e-mail s'affiche dans la console (`EMAIL_BACKEND
+= console`). Pour activer un vrai SMTP en production, définir les variables
+d'environnement `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`.
 
 ## Tests rapides
 

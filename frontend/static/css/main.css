@@ -1,0 +1,112 @@
+/* ==========================================================
+   main.css — Styles personnalisés UFR SI
+   Auteurs : Bineta Hanne & Aminata Kounta
+   ========================================================== */
+
+/* --- Variables (palette UFR SI) --- */
+:root {
+  --ufr-primary: #0d6efd;
+  --ufr-secondary: #6c757d;
+  --ufr-accent: #ffc107;
+  --ufr-dark: #1a2332;
+}
+
+/* --- Tweaks globaux --- */
+body {
+  font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+  background-color: #f5f7fa;
+}
+
+/* --- Cards : un peu plus douces --- */
+.card {
+  border: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Hero --- */
+.hero {
+  background: linear-gradient(135deg, var(--ufr-primary) 0%, #084298 100%);
+  color: white;
+  padding: 4rem 0;
+  border-radius: 0.75rem;
+  margin-bottom: 2rem;
+}
+.hero h1 {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* --- Stats cards --- */
+.stat-card {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.stat-card .icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.stat-card .number {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--ufr-primary);
+}
+
+/* --- Badges plus jolis --- */
+.badge {
+  font-weight: 500;
+  padding: 0.4em 0.65em;
+}
+
+/* --- Tables --- */
+.table {
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* --- Footer --- */
+footer {
+  font-size: 0.875rem;
+}
+
+/* --- Leaflet : assurer que la carte respecte le radius --- */
+.leaflet-container {
+  border-radius: 0.5rem;
+}
+
+/* --- Forms : focus plus visible --- */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--ufr-primary);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* --- Boutons : un peu plus arrondis --- */
+.btn {
+  border-radius: 0.4rem;
+  font-weight: 500;
+}
+
+/* --- Liste matériels (catalogue + nouvelle demande) --- */
+.materiel-checkbox {
+  transition: background-color 0.15s ease;
+}
+
+/* --- Chat bubbles --- */
+.bulle {
+  word-wrap: break-word;
+}
+
+/* --- Responsive : marges sur mobile --- */
+@media (max-width: 576px) {
+  .hero { padding: 2rem 1rem; }
+  .hero h1 { font-size: 1.75rem; }
+}

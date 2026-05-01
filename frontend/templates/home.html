@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Accueil — Emprunt Matériel UFR SI{% endblock %}
+
+{% block content %}
+  <!-- Hero -->
+  <section class="hero text-center mb-5">
+    <div class="container">
+      <h1 class="display-4 fw-bold mb-3">
+        <i class="bi bi-geo-alt-fill"></i>
+        Gestion d'emprunt du matériel
+      </h1>
+      <p class="lead mb-4 opacity-75">
+        UFR Sciences de l'Ingénieur — Université Iba Der Thiam de Thiès
+      </p>
+      <p class="mb-4">
+        Plateforme centralisée pour réserver, géolocaliser et restituer
+        le matériel topographique et géodésique de l'UFR.
+      </p>
+      {% if user.is_authenticated %}
+        <a href="{% url 'nouvelle_demande' %}" class="btn btn-warning btn-lg">
+          <i class="bi bi-plus-circle"></i> Faire une demande d'emprunt
+        </a>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn btn-warning btn-lg">
+          <i class="bi bi-box-arrow-in-right"></i> Se connecter
+        </a>
+        <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg ms-2">
+          Créer un compte
+        </a>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Statistiques -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-3">
+      <div class="card text-center h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <i class="bi bi-tools text-primary display-5"></i>
+          <h3 class="mt-2 fw-bold">{{ stats.materiels }}</h3>
+          <p class="text-muted mb-0">Matériels</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <i class="bi bi-grid text-success display-5"></i>
+          <h3 class="mt-2 fw-bold">{{ stats.categories }}</h3>
+          <p class="text-muted mb-0">Catégories</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <i class="bi bi-check-circle text-info display-5"></i>
+          <h3 class="mt-2 fw-bold">{{ stats.disponibles }}</h3>
+          <p class="text-muted mb-0">Disponibles</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <i class="bi bi-people text-warning display-5"></i>
+          <h3 class="mt-2 fw-bold">{{ stats.utilisateurs }}</h3>
+          <p class="text-muted mb-0">Utilisateurs</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fonctionnalités -->
+  <h2 class="mb-4">Fonctionnalités</h2>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <i class="bi bi-search text-primary fs-1"></i>
+          <h5 class="card-title mt-3">Catalogue en ligne</h5>
+          <p class="card-text text-muted">
+            Consultez le matériel disponible (stations totales, GNSS, niveaux…) avec photos et descriptions techniques.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <i class="bi bi-geo-alt text-success fs-1"></i>
+          <h5 class="card-title mt-3">Géolocalisation</h5>
+          <p class="card-text text-muted">
+            Indiquez précisément l'emplacement d'utilisation sur une carte interactive.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <i class="bi bi-robot text-warning fs-1"></i>
+          <h5 class="card-title mt-3">Assistant IA</h5>
+          <p class="card-text text-muted">
+            Posez vos questions techniques au chatbot fine-tuné sur les manuels et FAQ de l'UFR.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

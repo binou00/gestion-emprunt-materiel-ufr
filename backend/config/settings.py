@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "materiel.apps.MaterielConfig",
     "emprunts.apps.EmpruntsConfig",
     "chatbot.apps.ChatbotConfig",
+    "pages.apps.PagesConfig",
+    "bonus.apps.BonusConfig",
 ]
 
 MIDDLEWARE = [
@@ -87,6 +89,11 @@ DATABASES = {
 
 # --- Authentification ---
 AUTH_USER_MODEL = "users.Utilisateur"
+
+# Redirections après login / logout (vues HTML)
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "home"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -134,3 +141,20 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG  # à restreindre en prod
 
 # --- Service IA (Phase 5) ---
 IA_SERVICE_URL = os.getenv("IA_SERVICE_URL", "http://localhost:8001")
+
+# --- Email (Bonus : notifications) ---
+# En dev, les e-mails s'affichent dans la console (pas d'envoi réel).
+# En prod, configurer SMTP via variables d'environnement.
+EMAIL_BACKEND = os.getenv(
+    "DJANGO_EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend",
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    "Plateforme UFR SI <no-reply@ufrsi.local>",
+)

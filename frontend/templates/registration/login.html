@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Connexion — UFR SI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow border-0">
+      <div class="card-body p-4">
+        <h2 class="text-center mb-4">
+          <i class="bi bi-box-arrow-in-right text-primary"></i> Connexion
+        </h2>
+
+        {% if form.errors %}
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i> Identifiants invalides. Réessayez.
+          </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="id_username" class="form-label">Adresse e-mail</label>
+            <input type="email" name="username" id="id_username"
+                   class="form-control" placeholder="prenom.nom@univ-thies.sn" required autofocus>
+          </div>
+
+          <div class="mb-3">
+            <label for="id_password" class="form-label">Mot de passe</label>
+            <input type="password" name="password" id="id_password" class="form-control" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+
+          <input type="hidden" name="next" value="{{ next }}">
+        </form>
+
+        <hr class="my-4">
+        <p class="text-center mb-0 text-muted">
+          Pas encore de compte ?
+          <a href="{% url 'register' %}">Inscrivez-vous</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

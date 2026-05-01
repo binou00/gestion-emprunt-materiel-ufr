@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes emprunts — UFR SI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="mb-1"><i class="bi bi-clipboard-check text-primary"></i> Mes demandes</h1>
+    <p class="text-muted mb-0">Historique de toutes mes demandes d'emprunt.</p>
+  </div>
+  <a href="{% url 'nouvelle_demande' %}" class="btn btn-success">
+    <i class="bi bi-plus-circle"></i> Nouvelle demande
+  </a>
+</div>
+
+{% if demandes %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Date demande</th>
+          <th>Période</th>
+          <th>Lieu</th>
+          <th>Matériels</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in demandes %}
+          <tr>
+            <td><strong>D{{ d.id }}</strong></td>
+            <td><small>{{ d.date_demande|date:"d/m/Y H:i" }}</small></td>
+            <td>
+              <small>
+                <i class="bi bi-calendar-event"></i> {{ d.date_debut|date:"d/m/Y" }}
+                <i class="bi bi-arrow-right"></i> {{ d.date_fin|date:"d/m/Y" }}
+              </small>
+            </td>
+            <td>
+              {% if d.emplacement %}
+                <small><i class="bi bi-geo-alt-fill text-danger"></i> {{ d.emplacement.nom_lieu|default:"Lieu défini" }}</small>
+              {% else %}
+                <small class="text-muted">—</small>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-secondary">{{ d.lignes.count }} article(s)</span>
+            </td>
+            <td>
+              {% if d.statut == 'EN_ATTENTE' %}
+                <span class="badge bg-warning text-dark">En attente</span>
+              {% elif d.statut == 'APPROUVEE' %}
+                <span class="badge bg-info text-dark">Approuvée</span>
+              {% elif d.statut == 'EN_COURS' %}
+                <span class="badge bg-primary">En cours</span>
+              {% elif d.statut == 'RESTITUEE' %}
+                <span class="badge bg-success">Restituée</span>
+              {% elif d.statut == 'REFUSEE' %}
+                <span class="badge bg-danger">Refusée</span>
+              {% elif d.statut == 'ANNULEE' %}
+                <span class="badge bg-dark">Annulée</span>
+              {% endif %}
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#detail-{{ d.id }}">
+                <i class="bi bi-eye"></i> Détails
+              </button>
+            </td>
+          </tr>
+          <tr class="collapse" id="detail-{{ d.id }}">
+            <td colspan="7" class="bg-light">
+              <div class="p-3">
+                <strong>Motif :</strong> {{ d.motif|default:"—" }}<br>
+                <strong>Articles :</strong>
+                <ul class="mb-0">
+                  {% for l in d.lignes.all %}
+                    <li>{{ l.materiel.nom }} × {{ l.quantite }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-inbox display-1 text-muted"></i>
+    <h4 class="mt-3 text-muted">Aucune demande pour le moment</h4>
+    <p class="text-muted">Faites votre première demande de matériel pour commencer.</p>
+    <a href="{% url 'nouvelle_demande' %}" class="btn btn-primary mt-2">
+      <i class="bi bi-plus-circle"></i> Nouvelle demande
+    </a>
+  </div>
+{% endif %}
+{% endblock %}

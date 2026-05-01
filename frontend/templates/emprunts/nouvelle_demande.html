@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Nouvelle demande — UFR SI{% endblock %}
+
+{% block extra_head %}
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+  <style>
+    #carte { height: 420px; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .materiel-checkbox { cursor: pointer; }
+    .materiel-checkbox:hover { background-color: #f8f9fa; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-1"><i class="bi bi-plus-circle text-primary"></i> Nouvelle demande de matériel</h1>
+<p class="text-muted mb-4">Renseignez les détails de votre sortie terrain et localisez votre zone de travail sur la carte.</p>
+
+<form method="post" id="formDemande">
+  {% csrf_token %}
+
+  <div class="row g-4">
+    <!-- Colonne gauche : informations -->
+    <div class="col-lg-5">
+
+      <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <i class="bi bi-calendar-event"></i> Période d'emprunt
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Date de début</label>
+            <input type="date" name="date_debut" id="date_debut" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Date de fin</label>
+            <input type="date" name="date_fin" id="date_fin" class="form-control" required>
+          </div>
+          <div class="mb-0">
+            <label class="form-label">Motif de la sortie</label>
+            <textarea name="motif" rows="2" class="form-control" placeholder="Ex : TP de levé topographique..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-success text-white">
+          <i class="bi bi-geo-alt-fill"></i> Localisation
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-2">
+            Cliquez sur la carte pour placer votre zone de travail.
+          </p>
+          <div id="carte"></div>
+          <div class="row g-2 mt-2">
+            <div class="col">
+              <label class="form-label small">Latitude</label>
+              <input type="text" name="latitude" id="latitude" class="form-control form-control-sm" readonly>
+            </div>
+            <div class="col">
+              <label class="form-label small">Longitude</label>
+              <input type="text" name="longitude" id="longitude" class="form-control form-control-sm" readonly>
+            </div>
+          </div>
+          <div class="mt-2">
+            <label class="form-label small">Nom du lieu (optionnel)</label>
+            <input type="text" name="nom_lieu" class="form-control form-control-sm" placeholder="Ex : Campus UFR SI, Thiès">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite : sélection du matériel -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <i class="bi bi-tools"></i> Matériel à emprunter
+          <span class="badge bg-dark ms-2" id="compteur">0</span>
+        </div>
+        <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+          {% if materiels %}
+            <div class="list-group">
+              {% for m in materiels %}
+                <label class="list-group-item materiel-checkbox d-flex justify-content-between align-items-center">
+                  <div class="flex-grow-1">
+                    <input type="checkbox" name="materiel_{{ m.id }}" class="form-check-input me-2 chk-mat" data-id="{{ m.id }}">
+                    <strong>{{ m.nom }}</strong>
+                    <small class="text-muted d-block ms-4">
+                      {{ m.categorie.nom }} — Stock dispo : {{ m.quantite_disponible }}
+                    </small>
+                  </div>
+                  <input type="number" name="qte_{{ m.id }}" min="1" max="{{ m.quantite_disponible }}" value="1"
+                         class="form-control form-control-sm qte-mat" style="width: 80px;" disabled>
+                </label>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-info">Aucun matériel disponible pour le moment.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="d-grid mt-3">
+        <button type="submit" class="btn btn-success btn-lg">
+          <i class="bi bi-check-circle"></i> Soumettre ma demande
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+
+  <script>
+    // === Carte Leaflet centrée sur Thiès, Sénégal ===
+    const THIES = [14.789, -16.926];
+    const carte = L.map('carte').setView(THIES, 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(carte);
+
+    let marqueur = null;
+    carte.on('click', (e) => {
+      const { lat, lng } = e.latlng;
+      if (marqueur) {
+        marqueur.setLatLng(e.latlng);
+      } else {
+        marqueur = L.marker(e.latlng, { draggable: true }).addTo(carte);
+        marqueur.on('dragend', (ev) => {
+          const pos = ev.target.getLatLng();
+          document.getElementById('latitude').value = pos.lat.toFixed(6);
+          document.getElementById('longitude').value = pos.lng.toFixed(6);
+        });
+      }
+      document.getElementById('latitude').value = lat.toFixed(6);
+      document.getElementById('longitude').value = lng.toFixed(6);
+    });
+
+    // === Activation/désactivation des champs quantité ===
+    document.querySelectorAll('.chk-mat').forEach(chk => {
+      chk.addEventListener('change', () => {
+        const qte = chk.closest('.list-group-item').querySelector('.qte-mat');
+        qte.disabled = !chk.checked;
+        majCompteur();
+      });
+    });
+
+    function majCompteur() {
+      const n = document.querySelectorAll('.chk-mat:checked').length;
+      document.getElementById('compteur').textContent = n;
+    }
+
+    // === Validation des dates ===
+    const dDeb = document.getElementById('date_debut');
+    const dFin = document.getElementById('date_fin');
+    dDeb.addEventListener('change', () => {
+      if (dFin.value && dFin.value < dDeb.value) {
+        dFin.value = dDeb.value;
+      }
+      dFin.min = dDeb.value;
+    });
+  </script>
+{% endblock %}

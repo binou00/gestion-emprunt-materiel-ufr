@@ -1,46 +1,98 @@
 """
-Service IA — abstrait l'appel au modèle fine-tuné.
+Service IA — abstrait l'appel au modèle fine-tuné via HTTP.
 
-En Phase 5, on remplacera le mock par un vrai appel HTTP au service FastAPI.
-Pour l'instant, on retourne une réponse factice — l'application reste fonctionnelle
-même sans modèle entraîné.
+Le microservice FastAPI (ia/service/main.py) expose deux routes :
+    POST /predict  → prompt simple
+    POST /chat     → prompt avec historique
+
+Si le service est injoignable, on retombe sur une réponse de secours
+afin que l'application Django continue de fonctionner.
 """
+from __future__ import annotations
+
+import logging
+
+import requests
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+
+class IAServiceError(Exception):
+    """Erreur levée quand le microservice IA est injoignable ou répond mal."""
 
 
 class ChatService:
-    """Interface unique pour discuter avec l'IA. Injecte le modèle au besoin."""
+    """Interface unique pour discuter avec l'IA.
 
-    def __init__(self, ia_url: str | None = None):
-        self.ia_url = ia_url or settings.IA_SERVICE_URL
+    Encapsule l'appel HTTP au microservice FastAPI et fournit un fallback
+    pour que l'app Django reste utilisable même si l'IA est down.
+    """
 
-    def repondre(self, question: str, historique: list[dict]) -> str:
+    def __init__(self, ia_url: str | None = None, timeout: int = 30):
+        self.ia_url = (ia_url or settings.IA_SERVICE_URL).rstrip("/")
+        self.timeout = timeout
+
+    # ------------------------------------------------------------------
+    # API publique
+    # ------------------------------------------------------------------
+    def repondre(self, question: str, historique: list[dict] | None = None) -> str:
+        """Renvoie la réponse du chatbot pour une question donnée.
+
+        :param question: Question de l'utilisateur (str non vide).
+        :param historique: Liste de messages précédents au format
+            [{"role": "user"|"assistant", "content": "..."}, ...]
         """
-        Appelle le service IA pour générer une réponse.
-        En attendant le fine-tuning (Phase 5), on retourne un mock.
-        """
-        # TODO Phase 5 : appel HTTP réel
-        # import requests
-        # response = requests.post(f"{self.ia_url}/chat", json={"prompt": question, "history": historique}, timeout=30)
-        # return response.json()["answer"]
+        historique = historique or []
+        try:
+            return self._appeler_chat(question, historique)
+        except IAServiceError as exc:
+            logger.warning("IA injoignable, fallback. Cause : %s", exc)
+            return self._fallback(question)
 
-        # Mock simple basé sur des mots-clés
-        q = question.lower()
-        if "station totale" in q:
-            return ("Pour mettre en station une station totale Leica TS06 :\n"
-                    "1. Centrer le trépied au-dessus du point ;\n"
-                    "2. Caler grossièrement avec la nivelle sphérique ;\n"
-                    "3. Caler finement avec la nivelle torique en jouant sur les vis ;\n"
-                    "4. Vérifier le centrage optique.\n"
-                    "(Réponse mock — sera remplacée par le modèle fine-tuné en Phase 5.)")
-        if "gnss" in q or "gps" in q:
-            return ("Avant tout levé GNSS : vérifier la batterie, la configuration RTK, "
-                    "le masque d'élévation (10°) et le PDOP (< 5). "
-                    "(Réponse mock — modèle fine-tuné à venir en Phase 5.)")
-        if "niveau" in q:
-            return ("Pour un nivellement direct : calez le niveau, lisez le fil moyen sur la mire, "
-                    "puis pratiquez le double cheminement aller-retour. "
-                    "(Mock — Phase 5 pour la vraie réponse.)")
-        return ("Bonjour ! Je suis l'assistant matériel de l'UFR. "
-                "Je serai pleinement opérationnel une fois le fine-tuning du modèle terminé (Phase 5). "
-                "Pour l'instant je peux répondre à des questions sur les stations totales, GNSS et niveaux.")
+    def health(self) -> dict:
+        """Renvoie le statut du microservice IA (utile pour /api/chat/health/)."""
+        try:
+            r = requests.get(f"{self.ia_url}/health", timeout=5)
+            r.raise_for_status()
+            return {"online": True, **r.json()}
+        except (requests.RequestException, ValueError) as exc:
+            return {"online": False, "error": str(exc)}
+
+    # ------------------------------------------------------------------
+    # Implémentation
+    # ------------------------------------------------------------------
+    def _appeler_chat(self, question: str, historique: list[dict]) -> str:
+        """Effectue l'appel HTTP POST /chat sur le microservice IA."""
+        # Construire la liste de messages : historique + nouvelle question
+        messages = list(historique) + [{"role": "user", "content": question}]
+        payload = {"messages": messages, "max_new_tokens": 256}
+
+        try:
+            r = requests.post(
+                f"{self.ia_url}/chat",
+                json=payload,
+                timeout=self.timeout,
+            )
+            r.raise_for_status()
+            data = r.json()
+        except requests.Timeout as exc:
+            raise IAServiceError(f"Timeout après {self.timeout}s") from exc
+        except requests.RequestException as exc:
+            raise IAServiceError(f"Erreur réseau : {exc}") from exc
+        except ValueError as exc:
+            raise IAServiceError("Réponse non JSON") from exc
+
+        reponse = data.get("response", "").strip()
+        if not reponse:
+            raise IAServiceError("Réponse vide du modèle")
+        return reponse
+
+    def _fallback(self, question: str) -> str:
+        """Réponse de secours quand le service IA est indisponible."""
+        return (
+            "L'assistant IA est momentanément indisponible. "
+            "Je vous invite à reformuler plus tard, ou à contacter directement "
+            "votre enseignant ou le technicien de l'UFR. "
+            f"(Question reçue : « {question[:80]}{'…' if len(question) > 80 else ''} »)"
+        )

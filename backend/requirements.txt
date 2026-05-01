@@ -10,6 +10,7 @@ djangorestframework-simplejwt==5.3.1
 # --- Utils ---
 python-dotenv==1.0.1
 Pillow==10.3.0           # gestion images (photos matériel)
+requests==2.32.3         # appels HTTP au microservice IA (Phase 5)
 
 # --- Dev/test ---
 pytest==8.2.0

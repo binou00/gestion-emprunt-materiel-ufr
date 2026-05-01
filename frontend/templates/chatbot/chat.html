@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Assistant IA — UFR SI{% endblock %}
+
+{% block extra_head %}
+  <style>
+    #zoneChat {
+      height: 60vh;
+      overflow-y: auto;
+      background: #f8f9fa;
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    .msg { margin-bottom: 1rem; }
+    .msg-user .bulle { background: #0d6efd; color: white; }
+    .msg-bot .bulle { background: white; border: 1px solid #dee2e6; }
+    .bulle {
+      display: inline-block;
+      padding: 0.6rem 0.9rem;
+      border-radius: 1rem;
+      max-width: 80%;
+      line-height: 1.4;
+    }
+    .msg-user { text-align: right; }
+    .msg-meta { font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- Sidebar : conversations passées -->
+  <div class="col-md-3">
+    <h5><i class="bi bi-chat-dots"></i> Conversations</h5>
+    <button class="btn btn-sm btn-outline-primary w-100 mb-3" onclick="nouvelleConversation()">
+      <i class="bi bi-plus"></i> Nouvelle
+    </button>
+    <div class="list-group">
+      {% for c in conversations %}
+        <button class="list-group-item list-group-item-action small"
+                onclick="chargerConversation({{ c.id }})">
+          <strong>{{ c.titre|default:"Sans titre"|truncatewords:5 }}</strong><br>
+          <small class="text-muted">{{ c.derniere_activite|date:"d/m H:i" }}</small>
+        </button>
+      {% empty %}
+        <p class="text-muted small">Aucune conversation pour le moment.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Zone de chat -->
+  <div class="col-md-9">
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-dark">
+        <i class="bi bi-robot"></i> <strong>Assistant IA — Topographie & Géodésie</strong>
+        <small class="text-muted ms-2">Posez vos questions techniques</small>
+      </div>
+      <div class="card-body">
+        <div id="zoneChat">
+          <div class="msg msg-bot">
+            <div class="bulle">
+              Bonjour {{ user.first_name|default:user.username }} !
+              Je suis votre assistant IA. Posez-moi vos questions sur le matériel topographique
+              (stations totales, GNSS, niveaux...) ou sur les procédures d'emprunt.
+            </div>
+          </div>
+        </div>
+
+        <form id="formChat" class="mt-3">
+          <div class="input-group">
+            <input type="text" id="messageInput" class="form-control"
+                   placeholder="Tapez votre question..." autocomplete="off" required>
+            <button class="btn btn-primary" type="submit">
+              <i class="bi bi-send-fill"></i> Envoyer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const zone = document.getElementById('zoneChat');
+  const form = document.getElementById('formChat');
+  const input = document.getElementById('messageInput');
+  let conversationId = null;  // crée à la volée à la 1ère question
+
+  // Récupère le CSRF token Django
+  function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+  }
+  const CSRF = getCookie('csrftoken');
+
+  function ajouterMessage(role, contenu) {
+    const div = document.createElement('div');
+    div.className = 'msg msg-' + role;
+    div.innerHTML = `<div class="bulle">${contenu}</div>`;
+    zone.appendChild(div);
+    zone.scrollTop = zone.scrollHeight;
+  }
+
+  async function creerConversation() {
+    const r = await fetch('/api/chat/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      credentials: 'same-origin',
+      body: JSON.stringify({ titre: 'Nouvelle conversation' }),
+    });
+    if (!r.ok) throw new Error('Création conversation échouée');
+    const data = await r.json();
+    return data.id;
+  }
+
+  async function envoyerMessage(question) {
+    if (!conversationId) {
+      conversationId = await creerConversation();
+    }
+    const r = await fetch(`/api/chat/${conversationId}/envoyer/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      credentials: 'same-origin',
+      body: JSON.stringify({ contenu: question }),
+    });
+    if (!r.ok) throw new Error(`Erreur ${r.status}`);
+    const data = await r.json();
+    return data.reponse;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question) return;
+    ajouterMessage('user', question);
+    input.value = '';
+
+    // Indicateur de chargement
+    ajouterMessage('bot', '<em class="text-muted">L\'assistant réfléchit...</em>');
+
+    try {
+      const reponse = await envoyerMessage(question);
+      zone.lastChild.remove();
+      ajouterMessage('bot', reponse);
+    } catch (err) {
+      zone.lastChild.remove();
+      ajouterMessage('bot',
+        '<span class="text-danger">Erreur : ' + err.message +
+        '</span><br><small>Vérifie que le service IA tourne sur le port 8001.</small>'
+      );
+    }
+  });
+
+  function nouvelleConversation() {
+    conversationId = null;
+    zone.innerHTML = '';
+    ajouterMessage('bot', "Nouvelle conversation. Que voulez-vous savoir ?");
+  }
+
+  function chargerConversation(id) {
+    // TODO : GET /api/chat/<id>/  pour récupérer l'historique
+    console.log('Charger conversation', id);
+  }
+</script>
+{% endblock %}
